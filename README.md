@@ -1,12 +1,13 @@
 # MLP-C++
 Multilayer Perceptron C++ version
 
-Requires Eigen library
+Requires Eigen and OpenBLAS libraries
 
 OS X:
 
 ```
-brew install eigen
+brew install eigen homebrew/science/openblas
+
 ```
 
 Usage:
