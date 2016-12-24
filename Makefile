@@ -6,7 +6,7 @@
 OS := $(shell uname)
 
 CC=g++
-USE_BLAS=0
+USE_BLAS=1
 INCLUDES=-I.
 LFLAGS=
 CFLAGS=-Ofast -std=c++11
