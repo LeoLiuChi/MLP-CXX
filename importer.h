@@ -13,7 +13,7 @@
 
 //set Matrix implementation
 #include <Eigen/Dense>
-typedef Eigen::VectorXd Vector;
+typedef Eigen::VectorXf Vector;
 
 typedef struct {
 
@@ -24,76 +24,76 @@ typedef struct {
 
 class MNISTImporter {
 
-	public:
+public:
 
-		static std::deque<datapoint> importFromFile(const char* filename, const char* labels_filename) {
+	static std::deque<datapoint> importFromFile(const char* filename, const char* labels_filename) {
 
-			const size_t offset_bytes = 16;
-			const size_t offset_bytes_lab = 8;
-			const size_t w = 28;
-			const size_t h = 28;
+		const size_t offset_bytes = 16;
+		const size_t offset_bytes_lab = 8;
+		const size_t w = 28;
+		const size_t h = 28;
 
-			std::deque<datapoint> out;
+		std::deque<datapoint> out;
 
-			char buffer[w * h];
-			char buffer_lab;
+		char buffer[w * h];
+		char buffer_lab;
 
-			size_t allocs = 0;
+		size_t allocs = 0;
 
-			std::ifstream infile(filename, std::ios::in | std::ios::binary);
-			std::ifstream labels_file(labels_filename, std::ios::in | std::ios::binary);
+		std::ifstream infile(filename, std::ios::in | std::ios::binary);
+		std::ifstream labels_file(labels_filename, std::ios::in | std::ios::binary);
 
-			if (infile.is_open() && labels_file.is_open()) {
+		if (infile.is_open() && labels_file.is_open()) {
 
-				printf("Loading data from %s", filename);
-				fflush(stdout);
+			printf("Loading data from %s", filename);
+			fflush(stdout);
 
-				infile.seekg (offset_bytes, std::ios::beg);
-				labels_file.seekg (offset_bytes_lab, std::ios::beg);
+			infile.seekg (offset_bytes, std::ios::beg);
+			labels_file.seekg (offset_bytes_lab, std::ios::beg);
 
-				while (!infile.eof() && !labels_file.eof()) {
+			while (!infile.eof() && !labels_file.eof()) {
 
-					infile.read(buffer, w * h);
-					labels_file.read(&buffer_lab, 1);
+				infile.read(buffer, w * h);
+				labels_file.read(&buffer_lab, 1);
 
-					if (!infile.eof() && !labels_file.eof()) {
+				if (!infile.eof() && !labels_file.eof()) {
 
-						Vector temp(w * h);
+					Vector temp(w * h);
 
-						allocs++;
+					allocs++;
 
-						if (allocs % 1000 == 0) {
-							putchar('.');
-							fflush(stdout);
-						}
+					if (allocs % 1000 == 0) {
+						putchar('.');
+						fflush(stdout);
+					}
 
-						for (unsigned i = 0; i < w * h; i++) {
+					for (unsigned i = 0; i < w * h; i++) {
 
-							temp(i) = (double)((uint8_t)buffer[i]) / 255.0f;
-
-						}
-
-						datapoint dp;
-						dp.x = temp;
-						dp.y = (unsigned int)buffer_lab;
-						out.push_back(dp);
+						temp(i) = (double)((uint8_t)buffer[i]) / 255.0f;
 
 					}
 
+					datapoint dp;
+					dp.x = temp;
+					dp.y = (unsigned int)buffer_lab;
+					out.push_back(dp);
+
 				}
 
-				printf("Finished.\n");
-				infile.close();
-				labels_file.close();
-
-			} else {
-
-				printf("Oops! Couldn't find file %s or %s\n", filename, labels_filename);
 			}
 
-			return out;
+			printf("Finished.\n");
+			infile.close();
+			labels_file.close();
 
+		} else {
+
+			printf("Oops! Couldn't find file %s or %s\n", filename, labels_filename);
 		}
+
+		return out;
+
+	}
 
 };
 

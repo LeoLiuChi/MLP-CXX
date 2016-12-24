@@ -10,20 +10,27 @@
 
 //set Matrix & Vector implementation
 #include <Eigen/Dense>
-typedef Eigen::MatrixXd Matrix;
-typedef Eigen::VectorXd Vector;
+typedef Eigen::MatrixXf Matrix;
+typedef Eigen::VectorXf Vector;
 
 #include <iostream>
 #include <random>
 
 //f(x) = sigm(x)
-inline double __logistic(const double x) {
+inline float __logistic(const float x) {
 	return 1.0 / (1.0 +::exp(-x));
 }
 
-inline double __exponential(const double x) {
+inline float __exponential(const float x) {
 	return exp(x);
 }
+
+#ifdef USE_BLAS
+#include <cblas.h>
+void BLAS_mmul( Eigen::MatrixXf& __restrict c, Eigen::MatrixXf& __restrict a,
+                Eigen::MatrixXf& __restrict b, bool aT = false, bool bT = false );
+
+#endif
 
 Matrix rectify(Matrix& x) {
 
@@ -75,7 +82,7 @@ Matrix softmax(Matrix& x) {
 
 	//probs(class) = exp(x, class)/sum(exp(x, class))
 
-	Matrix e = x.unaryExpr(std::ptr_fun(::exp));
+	Matrix e = x.unaryExpr(std::ptr_fun(::expf));
 
 	Vector sum = e.colwise().sum();
 
@@ -89,13 +96,13 @@ Matrix softmax(Matrix& x) {
 	return y;
 }
 
-double cross_entropy(Matrix predictions, Matrix targets) {
+float cross_entropy(Matrix predictions, Matrix targets) {
 
-	double ce = 0.0;
+	float ce = 0.0;
 	Matrix error(predictions.rows(), predictions.cols());
 
 	//check what has happened and get information content for that event
-	error.array() = -predictions.unaryExpr(std::ptr_fun(::log)).array() * targets.array();
+	error.array() = -predictions.unaryExpr(std::ptr_fun(::logf)).array() * targets.array();
 	ce = error.sum();
 
 	return ce;
@@ -109,12 +116,12 @@ void randi(Eigen::VectorXi& m, int range_min, int range_max) {
 	std::uniform_int_distribution<> dis(range_min, range_max);
 
 	for (int i = 0; i < m.rows(); i++) {
-		m(i) = (double)dis(mt);
+		m(i) = (float)dis(mt);
 	}
 
 }
 
-void randn(Matrix& m, double mean, double stddev) {
+void randn(Matrix& m, float mean, float stddev) {
 
 	std::random_device rd;
 	std::mt19937 mt(rd());
@@ -131,7 +138,7 @@ void randn(Matrix& m, double mean, double stddev) {
 void linspace(Eigen::VectorXi& m, int range_min, int range_max) {
 
 	for (int i = 0; i < m.rows(); i++) {
-		m(i) = (double)(range_min + i);
+		m(i) = (float)(range_min + i);
 	}
 
 }
@@ -171,7 +178,7 @@ Eigen::VectorXi colwise_max_index(Matrix& m) {
 
 	for (size_t i = 0; i < m.cols(); i++) {
 
-		double current_max_val;
+		float current_max_val;
 		int index;
 
 		for (size_t j = 0; j < m.rows(); j++) {
@@ -213,5 +220,32 @@ size_t count_correct_predictions(Matrix& p, Matrix& t) {
 
 	return count_zeros(correct);
 }
+
+#ifdef USE_BLAS
+// c = a * b
+void BLAS_mmul( Eigen::MatrixXf& __restrict c, Eigen::MatrixXf& __restrict a,
+                Eigen::MatrixXf& __restrict b, bool aT, bool bT ) {
+
+	enum CBLAS_TRANSPOSE transA = aT ? CblasTrans : CblasNoTrans;
+	enum CBLAS_TRANSPOSE transB = bT ? CblasTrans : CblasNoTrans;
+
+	size_t M = c.rows();
+	size_t N = c.cols();
+	size_t K = aT ? a.rows() : a.cols();
+
+	float alpha = 1.0f;
+	float beta = 1.0f;
+
+	size_t lda = aT ? K : M;
+	size_t ldb = bT ? N : K;
+	size_t ldc = M;
+
+	cblas_sgemm( CblasColMajor, transA, transB, M, N, K, alpha,
+	             a.data(), lda,
+	             b.data(), ldb, beta, c.data(), ldc );
+
+
+}
+#endif /* USE_BLAS */
 
 #endif
