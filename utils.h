@@ -18,7 +18,7 @@ typedef Eigen::VectorXf Vector;
 
 //f(x) = sigm(x)
 inline float __logistic(const float x) {
-	return 1.0 / (1.0 +::exp(-x));
+	return 1.0 / (1.0 +::expf(-x));
 }
 
 inline float __exponential(const float x) {
