@@ -96,7 +96,7 @@ Matrix softmax(Matrix& x) {
 	return y;
 }
 
-float cross_entropy(Matrix predictions, Matrix targets) {
+float cross_entropy(Matrix& predictions, Matrix& targets) {
 
 	float ce = 0.0;
 	Matrix error(predictions.rows(), predictions.cols());
@@ -143,7 +143,7 @@ void linspace(Eigen::VectorXi& m, int range_min, int range_max) {
 
 }
 
-Matrix make_batch(std::deque<datapoint> data, Eigen::VectorXi& random_numbers) {
+Matrix make_batch(std::deque<datapoint>& data, Eigen::VectorXi& random_numbers) {
 
 	size_t batch_size = random_numbers.rows();
 	Matrix batch(data[0].x.rows(), batch_size);
@@ -157,7 +157,7 @@ Matrix make_batch(std::deque<datapoint> data, Eigen::VectorXi& random_numbers) {
 	return batch;
 }
 
-Matrix make_targets(std::deque<datapoint> data, Eigen::VectorXi& random_numbers, size_t classes) {
+Matrix make_targets(std::deque<datapoint>& data, Eigen::VectorXi& random_numbers, size_t classes) {
 
 	size_t batch_size = random_numbers.rows();
 	Matrix encoding = Matrix::Identity(classes, classes);
